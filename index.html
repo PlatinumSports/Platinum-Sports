@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101114">
+<title>Platinum Sports | Agenda Deportiva</title>
+<style>
+:root{--bg:#101114;--panel:#191a1f;--panel2:#22242b;--gold:#e5c783;--gold2:#c8a85d;--muted:#a8abb4;--line:#34363f;--white:#f7f7f8;--red:#d83a43}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--white);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}
+header{border-bottom:1px solid var(--line);background:#121317;position:sticky;top:0;z-index:5}
+.wrap{width:min(1080px,100% - 32px);margin:auto}.top{display:flex;align-items:center;gap:14px;padding:17px 0}.logo{width:48px;height:48px;border-radius:13px;background:linear-gradient(135deg,#f2dc9e,#b18a3c);color:#171717;display:grid;place-items:center;font-weight:900;font-size:25px;box-shadow:0 4px 18px #0005}.brand{font-weight:900;letter-spacing:.11em;color:var(--gold);font-size:clamp(18px,3vw,25px)}.tag{color:var(--muted);font-size:11px;letter-spacing:.17em;margin-top:3px}.admin{margin-left:auto;background:transparent;border:1px solid #57504a;color:var(--gold);border-radius:10px;padding:10px 13px;font-size:13px}
+.hero{padding:27px 0 20px}.eyebrow{color:var(--gold);font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}.hero h1{font-size:clamp(27px,5vw,42px);line-height:1.1;margin:8px 0}.hero p{color:var(--muted);margin:0;max-width:650px}
+.filters{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:20px 0}.field label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}.field input,.field select,.field textarea{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:10px;color:var(--white);padding:11px;outline:none}.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold)}
+.tabs{display:flex;gap:8px;overflow:auto;padding:2px 0 14px}.tab{border:1px solid var(--line);border-radius:999px;padding:9px 14px;background:var(--panel);color:#ddd;white-space:nowrap}.tab.active{background:var(--gold);border-color:var(--gold);color:#171717;font-weight:800}
+.dayhead{display:flex;align-items:center;justify-content:space-between;margin:12px 0}.dayhead h2{font-size:20px;margin:0}.count{color:var(--muted);font-size:13px}
+.events{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.event{background:linear-gradient(140deg,#1d1e24,#17181d);border:1px solid var(--line);border-radius:16px;padding:16px;min-width:0}.eventtop{display:flex;justify-content:space-between;gap:8px;align-items:center}.sport{font-size:11px;letter-spacing:.1em;font-weight:800;color:var(--gold);text-transform:uppercase}.time{font-weight:800;font-size:14px}.league{color:var(--muted);font-size:12px;margin-top:6px}.match{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;margin:18px 0}.team{text-align:center;font-weight:750;font-size:15px;overflow-wrap:anywhere}.team small{display:block;font-size:11px;color:var(--muted);font-weight:500;margin-top:4px}.vs{font-size:12px;color:var(--muted);font-weight:800}.broadcast{border-top:1px solid var(--line);padding-top:12px;display:flex;align-items:flex-start;gap:9px}.tv{font-size:18px}.broadcast strong{display:block;font-size:13px}.broadcast span{display:block;font-size:11px;color:var(--muted);margin-top:3px}.event-actions{display:flex;gap:7px;margin-top:12px}.mini{border:1px solid var(--line);background:#24252b;color:#ddd;border-radius:8px;padding:7px 10px;font-size:12px}.empty{grid-column:1/-1;text-align:center;padding:38px 15px;border:1px dashed var(--line);border-radius:14px;color:var(--muted)}
+footer{border-top:1px solid var(--line);margin-top:35px;padding:22px 0 32px;color:var(--muted);font-size:12px;text-align:center}
+.overlay{display:none;position:fixed;inset:0;background:#000b;z-index:10;padding:18px;overflow:auto}.overlay.show{display:block}.modal{width:min(650px,100%);margin:3vh auto;background:#18191e;border:1px solid var(--line);border-radius:18px;padding:20px}.modalhead{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:16px}.modal h2{font-size:22px;margin:0}.close{background:transparent;border:0;color:#fff;font-size:25px}.notice{background:#29251b;border:1px solid #62502c;color:#f0dba7;border-radius:10px;padding:11px;font-size:12px;line-height:1.5;margin-bottom:15px}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.full{grid-column:1/-1}.primary{background:var(--gold);border:0;border-radius:10px;padding:12px 16px;color:#181818;font-weight:850}.secondary{background:transparent;border:1px solid var(--line);color:#eee;border-radius:10px;padding:11px 14px}.formbuttons{display:flex;gap:9px;justify-content:flex-end;margin-top:15px}.hidden{display:none!important}
+@media(max-width:680px){.filters{grid-template-columns:1fr 1fr}.filters .field:first-child{grid-column:1/-1}.events{grid-template-columns:1fr}.formgrid{grid-template-columns:1fr}.full{grid-column:auto}.admin{padding:9px;font-size:12px}.top{gap:10px}.logo{width:42px;height:42px}}
+</style>
+</head>
+<body>
+<header><div class="wrap top"><div class="logo">P</div><div><div class="brand">PLATINUM SPORTS</div><div class="tag">AGENDA DEPORTIVA</div></div><button class="admin" id="openAdmin">⚙ Administrar</button></div></header>
+<main class="wrap">
+<section class="hero"><div class="eyebrow">México · Latinoamérica</div><h1>¿Qué vemos hoy?</h1><p>Consulta los horarios deportivos y descubre en qué canal o plataforma puedes seguir cada evento.</p></section>
+<section class="filters">
+<div class="field"><label for="search">Buscar partido, equipo o competición</label><input id="search" placeholder="Ej. América, NFL, Champions..."></div>
+<div class="field"><label for="dateFilter">Fecha</label><input id="dateFilter" type="date"></div>
+<div class="field"><label for="countryFilter">País de transmisión</label><select id="countryFilter"><option value="">Todos los países</option><option>México</option><option>Argentina</option><option>Chile</option><option>Colombia</option><option>Perú</option><option>Centroamérica</option><option>Estados Unidos</option><option>Internacional</option></select></div>
+</section>
+<nav class="tabs" id="tabs">
+<button class="tab active" data-sport="">Todos</button><button class="tab" data-sport="Fútbol">Fútbol</button><button class="tab" data-sport="Básquetbol">Básquetbol</button><button class="tab" data-sport="Béisbol">Béisbol</button><button class="tab" data-sport="Fútbol americano">Fútbol americano</button><button class="tab" data-sport="Tenis">Tenis</button><button class="tab" data-sport="Automovilismo">Automovilismo</button><button class="tab" data-sport="Otros">Otros</button>
+</nav>
+<div class="dayhead"><h2 id="dayTitle">Agenda deportiva</h2><span class="count" id="eventCount"></span></div>
+<section class="events" id="events"></section>
+</main>
+<footer><div class="wrap">© <span id="year"></span> Platinum Sports · Agenda deportiva</div></footer>
+<div class="overlay" id="adminOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal">
+<div class="modalhead"><h2 id="modalTitle">Administrar agenda</h2><button class="close" id="closeAdmin" aria-label="Cerrar">×</button></div>
+<div id="loginPanel"><div class="notice">El panel de esta demostración está protegido con un PIN local. Antes de publicar una versión real, hay que conectar una base de datos y autenticación para que los cambios se compartan con todos los visitantes.</div><div class="field"><label for="pin">PIN de demostración</label><input id="pin" type="password" inputmode="numeric" placeholder="Ingresa el PIN"></div><div class="formbuttons"><button class="primary" id="loginBtn">Entrar</button></div><p style="font-size:12px;color:var(--muted)">PIN inicial de demostración: <b>2468</b>. Cámbialo antes de compartir esta página; no es seguridad suficiente para una web pública.</p></div>
+<div id="editorPanel" class="hidden">
+<div class="notice">Los eventos se guardan en este navegador. Para que tus actualizaciones aparezcan en todos los dispositivos al publicar la web, necesitaremos conectar un servicio de datos compartido.</div>
+<form id="eventForm"><input id="eventId" type="hidden">
+<div class="formgrid">
+<div class="field"><label for="sport">Deporte *</label><select id="sport" required><option>Fútbol</option><option>Básquetbol</option><option>Béisbol</option><option>Fútbol americano</option><option>Tenis</option><option>Automovilismo</option><option>Boxeo</option><option>Voleibol</option><option>Hockey</option><option>Otros</option></select></div>
+<div class="field"><label for="date">Fecha *</label><input id="date" type="date" required></div>
+<div class="field"><label for="time">Hora local *</label><input id="time" type="time" required></div>
+<div class="field"><label for="country">País de transmisión</label><select id="country"><option>México</option><option>Argentina</option><option>Chile</option><option>Colombia</option><option>Perú</option><option>Centroamérica</option><option>Estados Unidos</option><option>Internacional</option></select></div>
+<div class="field"><label for="home">Equipo / participante 1 *</label><input id="home" required placeholder="Ej. América"></div>
+<div class="field"><label for="away">Equipo / participante 2</label><input id="away" placeholder="Ej. Guadalajara"></div>
+<div class="field full"><label for="competition">Competición / evento *</label><input id="competition" required placeholder="Ej. Liga MX, NBA, Gran Premio..."></div>
+<div class="field"><label for="channel">Canal o plataforma</label><input id="channel" placeholder="Ej. Canal 5, ESPN, streaming"></div>
+<div class="field"><label for="status">Estado</label><select id="status"><option>Programado</option><option>En vivo</option><option>Finalizado</option><option>Por confirmar</option></select></div>
+<div class="field full"><label for="notes">Información adicional (opcional)</label><textarea id="notes" rows="2" placeholder="Detalles del evento o transmisión"></textarea></div>
+</div><div class="formbuttons"><button type="button" class="secondary" id="clearForm">Limpiar</button><button type="submit" class="primary">Guardar evento</button></div>
+</form>
+<div style="border-top:1px solid var(--line);margin-top:20px;padding-top:15px"><h3 style="margin:0 0 10px;font-size:15px">Eventos guardados</h3><div id="manageList"></div><div class="formbuttons"><button class="secondary" id="exportBtn">Exportar respaldo JSON</button><button class="secondary" id="logoutBtn">Salir del panel</button></div></div>
+</div></div></div>
+<script>
+const $=id=>document.getElementById(id);
+const today=new Date();const localDate=d=>{const x=new Date(d.getTime()-d.getTimezoneOffset()*60000);return x.toISOString().slice(0,10)};
+$('dateFilter').value=localDate(today);$('date').value=localDate(today);$('year').textContent=today.getFullYear();
+let activeSport='';
+const KEY='platinumSportsAgendaEvents_v1';
+const seed=[
+{id:'demo1',sport:'Fútbol',date:localDate(today),time:'18:00',country:'México',home:'Equipo local',away:'Equipo visitante',competition:'Ejemplo de fútbol',channel:'Canal / plataforma por confirmar',status:'Programado',notes:'Evento de muestra: reemplázalo desde Administrar.'}
+];
+function load(){try{const v=JSON.parse(localStorage.getItem(KEY));return Array.isArray(v)?v:seed}catch{return seed}}
+let events=load();
+function save(){localStorage.setItem(KEY,JSON.stringify(events))}
+function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function prettyDate(v){if(!v)return 'Fecha por confirmar';return new Date(v+'T12:00:00').toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+function render(){
+ const date=$('dateFilter').value, country=$('countryFilter').value, q=$('search').value.trim().toLowerCase();
+ const list=events.filter(e=>(!date||e.date===date)&&(!activeSport||e.sport===activeSport||activeSport==='Otros'&&!['Fútbol','Básquetbol','Béisbol','Fútbol americano','Tenis','Automovilismo'].includes(e.sport))&&(!country||e.country===country)&&(!q||[e.home,e.away,e.competition,e.channel,e.sport,e.country,e.notes].join(' ').toLowerCase().includes(q))).sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
+ $('dayTitle').textContent=date?prettyDate(date):'Todos los eventos';$('eventCount').textContent=list.length+' evento'+(list.length===1?'':'s');
+ $('events').innerHTML=list.length?list.map(e=>`<article class="event"><div class="eventtop"><span class="sport">${esc(e.sport)} · ${esc(e.country||'Internacional')}</span><span class="time">${esc(e.time||'Por confirmar')}</span></div><div class="league">${esc(e.competition)} · ${esc(e.status||'Programado')}</div><div class="match"><div class="team">${esc(e.home)}<small>Local / participante</small></div><div class="vs">${e.away?'VS':'•'}</div><div class="team">${esc(e.away||'Por definir')}<small>${e.away?'Visitante / participante':'Participante'}</small></div></div><div class="broadcast"><span class="tv">▣</span><div><strong>${esc(e.channel||'Transmisión por confirmar')}</strong><span>${esc(e.notes||'Consulta la disponibilidad en tu país.')}</span></div></div></article>`).join(''):'<div class="empty">No hay eventos para los filtros seleccionados.<br><br>Entra en <b>Administrar</b> para agregar la programación.</div>';
+ renderManage();
+}
+function renderManage(){$('manageList').innerHTML=events.length?events.slice().sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).map(e=>`<div style="display:flex;gap:10px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding:10px 0"><div style="min-width:0"><b style="font-size:13px">${esc(e.home)} ${e.away?'vs '+esc(e.away):''}</b><div style="font-size:11px;color:var(--muted)">${esc(e.date)} · ${esc(e.time)} · ${esc(e.competition)}</div></div><div style="display:flex;gap:5px;flex-shrink:0"><button class="mini" onclick="editEvent('${esc(e.id)}')">Editar</button><button class="mini" onclick="deleteEvent('${esc(e.id)}')">Eliminar</button></div></div>`).join(''):'<p style="color:var(--muted);font-size:13px">Aún no hay eventos.</p>'}
+function resetForm(){$('eventForm').reset();$('eventId').value='';$('date').value=localDate(new Date());$('modalTitle').textContent='Administrar agenda'}
+window.editEvent=id=>{const e=events.find(x=>x.id===id);if(!e)return;for(const k of ['id','sport','date','time','country','home','away','competition','channel','status','notes'])$(k==='id'?'eventId':k).value=e[k]||'';$('modalTitle').textContent='Editar evento';window.scrollTo(0,0)}
+window.deleteEvent=id=>{if(confirm('¿Eliminar este evento?')){events=events.filter(e=>e.id!==id);save();render()}}
+$('eventForm').addEventListener('submit',ev=>{ev.preventDefault();const id=$('eventId').value||('e'+Date.now());const e={id,sport:$('sport').value,date:$('date').value,time:$('time').value,country:$('country').value,home:$('home').value.trim(),away:$('away').value.trim(),competition:$('competition').value.trim(),channel:$('channel').value.trim(),status:$('status').value,notes:$('notes').value.trim()};const i=events.findIndex(x=>x.id===id);if(i>=0)events[i]=e;else events.push(e);save();resetForm();render();alert('Evento guardado en este navegador.')});
+$('clearForm').onclick=resetForm;
+$('tabs').addEventListener('click',e=>{const b=e.target.closest('button[data-sport]');if(!b)return;activeSport=b.dataset.sport;document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t===b));render()});
+['search','dateFilter','countryFilter'].forEach(id=>$(id).addEventListener(id==='search'?'input':'change',render));
+$('openAdmin').onclick=()=>{$('adminOverlay').classList.add('show');$('loginPanel').classList.remove('hidden');$('editorPanel').classList.add('hidden');$('pin').value=''};
+$('closeAdmin').onclick=()=>$('adminOverlay').classList.remove('show');
+$('adminOverlay').addEventListener('click',e=>{if(e.target===$('adminOverlay'))$('adminOverlay').classList.remove('show')});
+$('loginBtn').onclick=()=>{if($('pin').value==='2468'){$('loginPanel').classList.add('hidden');$('editorPanel').classList.remove('hidden');renderManage()}else alert('PIN incorrecto. Usa el PIN de demostración indicado en esta página.')};
+$('logoutBtn').onclick=()=>{$('editorPanel').classList.add('hidden');$('loginPanel').classList.remove('hidden')};
+$('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify(events,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='platinum-sports-agenda.json';a.click();URL.revokeObjectURL(a.href)};
+render();
+</script>
+</body>
+</html>
