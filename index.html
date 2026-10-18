@@ -57,42 +57,363 @@ footer{border-top:1px solid var(--line);margin-top:35px;padding:22px 0 32px;colo
 </form>
 <div style="border-top:1px solid var(--line);margin-top:20px;padding-top:15px"><h3 style="margin:0 0 10px;font-size:15px">Eventos guardados</h3><div id="manageList"></div><div class="formbuttons"><button class="secondary" id="exportBtn">Exportar respaldo JSON</button><button class="secondary" id="logoutBtn">Salir del panel</button></div></div>
 </div></div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const $=id=>document.getElementById(id);
-const today=new Date();const localDate=d=>{const x=new Date(d.getTime()-d.getTimezoneOffset()*60000);return x.toISOString().slice(0,10)};
-$('dateFilter').value=localDate(today);$('date').value=localDate(today);$('year').textContent=today.getFullYear();
-let activeSport='';
-const KEY='platinumSportsAgendaEvents_v1';
-const seed=[
-{id:'demo1',sport:'Fútbol',date:localDate(today),time:'18:00',country:'México',home:'Equipo local',away:'Equipo visitante',competition:'Ejemplo de fútbol',channel:'Canal / plataforma por confirmar',status:'Programado',notes:'Evento de muestra: reemplázalo desde Administrar.'}
-];
-function load(){try{const v=JSON.parse(localStorage.getItem(KEY));return Array.isArray(v)?v:seed}catch{return seed}}
-let events=load();
-function save(){localStorage.setItem(KEY,JSON.stringify(events))}
-function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function prettyDate(v){if(!v)return 'Fecha por confirmar';return new Date(v+'T12:00:00').toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
-function render(){
- const date=$('dateFilter').value, country=$('countryFilter').value, q=$('search').value.trim().toLowerCase();
- const list=events.filter(e=>(!date||e.date===date)&&(!activeSport||e.sport===activeSport||activeSport==='Otros'&&!['Fútbol','Básquetbol','Béisbol','Fútbol americano','Tenis','Automovilismo'].includes(e.sport))&&(!country||e.country===country)&&(!q||[e.home,e.away,e.competition,e.channel,e.sport,e.country,e.notes].join(' ').toLowerCase().includes(q))).sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
- $('dayTitle').textContent=date?prettyDate(date):'Todos los eventos';$('eventCount').textContent=list.length+' evento'+(list.length===1?'':'s');
- $('events').innerHTML=list.length?list.map(e=>`<article class="event"><div class="eventtop"><span class="sport">${esc(e.sport)} · ${esc(e.country||'Internacional')}</span><span class="time">${esc(e.time||'Por confirmar')}</span></div><div class="league">${esc(e.competition)} · ${esc(e.status||'Programado')}</div><div class="match"><div class="team">${esc(e.home)}<small>Local / participante</small></div><div class="vs">${e.away?'VS':'•'}</div><div class="team">${esc(e.away||'Por definir')}<small>${e.away?'Visitante / participante':'Participante'}</small></div></div><div class="broadcast"><span class="tv">▣</span><div><strong>${esc(e.channel||'Transmisión por confirmar')}</strong><span>${esc(e.notes||'Consulta la disponibilidad en tu país.')}</span></div></div></article>`).join(''):'<div class="empty">No hay eventos para los filtros seleccionados.<br><br>Entra en <b>Administrar</b> para agregar la programación.</div>';
- renderManage();
+const SUPABASE_URL = 'https://ykpimquexeihxuluwkoq.supabase.co/rest/v1/';
+const SUPABASE_KEY = 'sb_publishable_W3LU1Z8zc5j18Kr5cBQR-A_C4I2Bc9L';
+
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const $ = id => document.getElementById(id);
+
+const today = new Date();
+const localDate = d => {
+  const x = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+  return x.toISOString().slice(0, 10);
+};
+
+$('dateFilter').value = localDate(today);
+$('date').value = localDate(today);
+$('year').textContent = today.getFullYear();
+
+let activeSport = '';
+let events = [];
+
+$('loginPanel').innerHTML = `
+  <div class="notice">
+    Acceso privado para administrar la agenda de Platinum Sports.
+    Inicia sesión con tu usuario administrador de Supabase.
+  </div>
+  <div class="field">
+    <label for="adminEmail">Correo electrónico</label>
+    <input id="adminEmail" type="email" autocomplete="username"
+      placeholder="Tu correo" required>
+  </div>
+  <div class="field" style="margin-top:12px">
+    <label for="adminPassword">Contraseña</label>
+    <input id="adminPassword" type="password"
+      autocomplete="current-password" placeholder="Tu contraseña" required>
+  </div>
+  <div class="formbuttons">
+    <button class="primary" id="loginBtn">Iniciar sesión</button>
+  </div>
+  <p id="loginError" role="alert"
+    style="font-size:12px;color:#f0a0a0"></p>
+`;
+
+$('editorPanel').querySelector('.notice').textContent =
+  'Los eventos se guardan en Supabase y se comparten entre tus dispositivos.';
+
+function esc(s = '') {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+  }[c]));
 }
-function renderManage(){$('manageList').innerHTML=events.length?events.slice().sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).map(e=>`<div style="display:flex;gap:10px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding:10px 0"><div style="min-width:0"><b style="font-size:13px">${esc(e.home)} ${e.away?'vs '+esc(e.away):''}</b><div style="font-size:11px;color:var(--muted)">${esc(e.date)} · ${esc(e.time)} · ${esc(e.competition)}</div></div><div style="display:flex;gap:5px;flex-shrink:0"><button class="mini" onclick="editEvent('${esc(e.id)}')">Editar</button><button class="mini" onclick="deleteEvent('${esc(e.id)}')">Eliminar</button></div></div>`).join(''):'<p style="color:var(--muted);font-size:13px">Aún no hay eventos.</p>'}
-function resetForm(){$('eventForm').reset();$('eventId').value='';$('date').value=localDate(new Date());$('modalTitle').textContent='Administrar agenda'}
-window.editEvent=id=>{const e=events.find(x=>x.id===id);if(!e)return;for(const k of ['id','sport','date','time','country','home','away','competition','channel','status','notes'])$(k==='id'?'eventId':k).value=e[k]||'';$('modalTitle').textContent='Editar evento';window.scrollTo(0,0)}
-window.deleteEvent=id=>{if(confirm('¿Eliminar este evento?')){events=events.filter(e=>e.id!==id);save();render()}}
-$('eventForm').addEventListener('submit',ev=>{ev.preventDefault();const id=$('eventId').value||('e'+Date.now());const e={id,sport:$('sport').value,date:$('date').value,time:$('time').value,country:$('country').value,home:$('home').value.trim(),away:$('away').value.trim(),competition:$('competition').value.trim(),channel:$('channel').value.trim(),status:$('status').value,notes:$('notes').value.trim()};const i=events.findIndex(x=>x.id===id);if(i>=0)events[i]=e;else events.push(e);save();resetForm();render();alert('Evento guardado en este navegador.')});
-$('clearForm').onclick=resetForm;
-$('tabs').addEventListener('click',e=>{const b=e.target.closest('button[data-sport]');if(!b)return;activeSport=b.dataset.sport;document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t===b));render()});
-['search','dateFilter','countryFilter'].forEach(id=>$(id).addEventListener(id==='search'?'input':'change',render));
-$('openAdmin').onclick=()=>{$('adminOverlay').classList.add('show');$('loginPanel').classList.remove('hidden');$('editorPanel').classList.add('hidden');$('pin').value=''};
-$('closeAdmin').onclick=()=>$('adminOverlay').classList.remove('show');
-$('adminOverlay').addEventListener('click',e=>{if(e.target===$('adminOverlay'))$('adminOverlay').classList.remove('show')});
-$('loginBtn').onclick=()=>{if($('pin').value==='2468'){$('loginPanel').classList.add('hidden');$('editorPanel').classList.remove('hidden');renderManage()}else alert('PIN incorrecto. Usa el PIN de demostración indicado en esta página.')};
-$('logoutBtn').onclick=()=>{$('editorPanel').classList.add('hidden');$('loginPanel').classList.remove('hidden')};
-$('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify(events,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='platinum-sports-agenda.json';a.click();URL.revokeObjectURL(a.href)};
-render();
+
+function prettyDate(v) {
+  if (!v) return 'Fecha por confirmar';
+  return new Date(v + 'T12:00:00').toLocaleDateString('es-MX', {
+    weekday:'long', day:'numeric', month:'long', year:'numeric'
+  });
+}
+
+function fromDb(r) {
+  return {
+    id: String(r.id),
+    sport: r.deporte,
+    date: r.fecha,
+    time: (r.hora || '').slice(0, 5),
+    country: r.pais || 'México',
+    home: r.equipo_local,
+    away: r.equipo_visitante || '',
+    competition: r.competicion || '',
+    channel: r.canal || '',
+    status: r.estado || 'Programado',
+    notes: r.notas || ''
+  };
+}
+
+function toDb(e) {
+  return {
+    titulo: e.home + (e.away ? ' vs ' + e.away : ''),
+    deporte: e.sport,
+    competicion: e.competition,
+    equipo_local: e.home,
+    equipo_visitante: e.away || null,
+    fecha: e.date,
+    hora: e.time,
+    canal: e.channel || null,
+    pais: e.country || 'México',
+    estado: e.status || 'Programado',
+    notas: e.notes || null
+  };
+}
+
+async function loadEvents() {
+  const { data, error } = await db
+    .from('eventos')
+    .select('*')
+    .order('fecha', { ascending: true })
+    .order('hora', { ascending: true });
+
+  if (error) {
+    console.error(error);
+    $('events').innerHTML =
+      '<div class="empty">No se pudo cargar la agenda. Verifica la configuración de Supabase.</div>';
+    return false;
+  }
+
+  events = (data || []).map(fromDb);
+  render();
+  return true;
+}
+
+function render() {
+  const date = $('dateFilter').value;
+  const country = $('countryFilter').value;
+  const q = $('search').value.trim().toLowerCase();
+
+  const mainSports = [
+    'Fútbol', 'Básquetbol', 'Béisbol',
+    'Fútbol americano', 'Tenis', 'Automovilismo'
+  ];
+
+  const list = events.filter(e =>
+    (!date || e.date === date) &&
+    (!activeSport || e.sport === activeSport ||
+      (activeSport === 'Otros' && !mainSports.includes(e.sport))) &&
+    (!country || e.country === country) &&
+    (!q || [
+      e.home, e.away, e.competition, e.channel,
+      e.sport, e.country, e.notes
+    ].join(' ').toLowerCase().includes(q))
+  ).sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
+
+  $('dayTitle').textContent = date ? prettyDate(date) : 'Todos los eventos';
+  $('eventCount').textContent =
+    list.length + ' evento' + (list.length === 1 ? '' : 's');
+
+  $('events').innerHTML = list.length ? list.map(e => `
+    <article class="event">
+      <div class="eventtop">
+        <span class="sport">${esc(e.sport)} · ${esc(e.country)}</span>
+        <span class="time">${esc(e.time || 'Por confirmar')}</span>
+      </div>
+      <div class="league">${esc(e.competition)} · ${esc(e.status)}</div>
+      <div class="match">
+        <div class="team">${esc(e.home)}
+          <small>Local / participante</small>
+        </div>
+        <div class="vs">${e.away ? 'VS' : '•'}</div>
+        <div class="team">${esc(e.away || 'Por definir')}
+          <small>${e.away ? 'Visitante / participante' : 'Participante'}</small>
+        </div>
+      </div>
+      <div class="broadcast">
+        <span class="tv">▣</span>
+        <div>
+          <strong>${esc(e.channel || 'Transmisión por confirmar')}</strong>
+          <span>${esc(e.notes || 'Consulta la disponibilidad en tu país.')}</span>
+        </div>
+      </div>
+    </article>
+  `).join('') :
+    '<div class="empty">No hay eventos para los filtros seleccionados.</div>';
+
+  renderManage();
+}
+
+function renderManage() {
+  const box = $('manageList');
+
+  box.innerHTML = events.length ? events
+    .slice()
+    .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
+    .map(e => `
+      <div style="display:flex;gap:10px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding:10px 0">
+        <div style="min-width:0">
+          <b style="font-size:13px">${esc(e.home)} ${e.away ? 'vs ' + esc(e.away) : ''}</b>
+          <div style="font-size:11px;color:var(--muted)">${esc(e.date)} · ${esc(e.time)} · ${esc(e.competition)}</div>
+        </div>
+        <div style="display:flex;gap:5px;flex-shrink:0">
+          <button class="mini" data-edit="${esc(e.id)}">Editar</button>
+          <button class="mini" data-delete="${esc(e.id)}">Eliminar</button>
+        </div>
+      </div>
+    `).join('') :
+    '<p style="color:var(--muted);font-size:13px">Aún no hay eventos.</p>';
+}
+
+function resetForm() {
+  $('eventForm').reset();
+  $('eventId').value = '';
+  $('date').value = localDate(new Date());
+  $('modalTitle').textContent = 'Administrar agenda';
+}
+
+window.editEvent = id => {
+  const e = events.find(x => x.id === String(id));
+  if (!e) return;
+
+  for (const k of [
+    'id', 'sport', 'date', 'time', 'country', 'home',
+    'away', 'competition', 'channel', 'status', 'notes'
+  ]) {
+    $(k === 'id' ? 'eventId' : k).value = e[k] || '';
+  }
+
+  $('modalTitle').textContent = 'Editar evento';
+};
+
+window.deleteEvent = async id => {
+  if (!confirm('¿Eliminar este evento?')) return;
+
+  const { error } = await db.from('eventos')
+    .delete().eq('id', Number(id));
+
+  if (error) {
+    alert('No se pudo eliminar. Verifica que hayas iniciado sesión como administrador.');
+    console.error(error);
+    return;
+  }
+
+  await loadEvents();
+};
+
+$('manageList').addEventListener('click', async e => {
+  const edit = e.target.closest('[data-edit]');
+  const del = e.target.closest('[data-delete]');
+
+  if (edit) window.editEvent(edit.dataset.edit);
+  if (del) await window.deleteEvent(del.dataset.delete);
+});
+
+$('eventForm').addEventListener('submit', async ev => {
+  ev.preventDefault();
+
+  const e = {
+    sport: $('sport').value,
+    date: $('date').value,
+    time: $('time').value,
+    country: $('country').value,
+    home: $('home').value.trim(),
+    away: $('away').value.trim(),
+    competition: $('competition').value.trim(),
+    channel: $('channel').value.trim(),
+    status: $('status').value,
+    notes: $('notes').value.trim()
+  };
+
+  const id = $('eventId').value;
+  let result;
+
+  if (id) {
+    result = await db.from('eventos')
+      .update(toDb(e)).eq('id', Number(id));
+  } else {
+    result = await db.from('eventos').insert(toDb(e));
+  }
+
+  if (result.error) {
+    console.error(result.error);
+    alert('No se pudo guardar. Comprueba tu sesión y los permisos de Supabase.');
+    return;
+  }
+
+  resetForm();
+  await loadEvents();
+  alert('Evento guardado en la agenda compartida.');
+});
+
+$('clearForm').onclick = resetForm;
+
+$('tabs').addEventListener('click', e => {
+  const b = e.target.closest('button[data-sport]');
+  if (!b) return;
+
+  activeSport = b.dataset.sport;
+  document.querySelectorAll('.tab').forEach(t =>
+    t.classList.toggle('active', t === b)
+  );
+  render();
+});
+
+['search', 'dateFilter', 'countryFilter'].forEach(id =>
+  $(id).addEventListener(id === 'search' ? 'input' : 'change', render)
+);
+
+$('openAdmin').onclick = () => {
+  $('adminOverlay').classList.add('show');
+  $('loginPanel').classList.remove('hidden');
+  $('editorPanel').classList.add('hidden');
+  $('adminEmail').value = '';
+  $('adminPassword').value = '';
+  $('loginError').textContent = '';
+};
+
+$('closeAdmin').onclick = () => $('adminOverlay').classList.remove('show');
+
+$('adminOverlay').addEventListener('click', e => {
+  if (e.target === $('adminOverlay')) {
+    $('adminOverlay').classList.remove('show');
+  }
+});
+
+$('loginBtn').onclick = async () => {
+  $('loginError').textContent = '';
+
+  const email = $('adminEmail').value.trim();
+  const password = $('adminPassword').value;
+
+  if (!email || !password) {
+    $('loginError').textContent = 'Escribe tu correo y contraseña.';
+    return;
+  }
+
+  const { error } = await db.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    $('loginError').textContent =
+      'No se pudo iniciar sesión. Revisa tus datos e inténtalo de nuevo.';
+    console.error(error);
+    return;
+  }
+
+  $('loginPanel').classList.add('hidden');
+  $('editorPanel').classList.remove('hidden');
+  await loadEvents();
+};
+
+$('logoutBtn').onclick = async () => {
+  await db.auth.signOut();
+  $('editorPanel').classList.add('hidden');
+  $('loginPanel').classList.remove('hidden');
+  $('adminEmail').value = '';
+  $('adminPassword').value = '';
+};
+
+$('exportBtn').onclick = () => {
+  const blob = new Blob([JSON.stringify(events, null, 2)], {
+    type: 'application/json'
+  });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'platinum-sports-agenda.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+async function start() {
+  if (SUPABASE_URL.includes('PEGA_AQUI') ||
+      SUPABASE_KEY.includes('PEGA_AQUI')) {
+    $('events').innerHTML =
+      '<div class="empty">Falta configurar la conexión con Supabase.</div>';
+    return;
+  }
+
+  await loadEvents();
+}
+
+start();
 </script>
 </body>
 </html>
