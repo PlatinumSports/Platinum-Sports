@@ -1,0 +1,15 @@
+PLATINUM SPORTS — AGENDA DEPORTIVA (prototipo)
+
+ARCHIVO PRINCIPAL
+- index.html: abre este archivo en un navegador para probar la agenda.
+
+FUNCIONES
+- Filtrar eventos por fecha, deporte, país y texto.
+- Agregar, editar y eliminar eventos desde Administrar.
+- Exportar un respaldo JSON.
+- Diseño adaptable a celular y computadora.
+
+IMPORTANTE
+Esta es una demostración de front-end. Los eventos se guardan en el almacenamiento local del navegador (localStorage), por lo que NO se sincronizan entre dispositivos ni se comparten automáticamente con todos los visitantes.
+El PIN 2468 solo es una barrera de demostración: no es seguridad real. No publiques datos privados ni uses este PIN en una web pública.
+Para que el panel sea privado y las actualizaciones se vean para todos, el siguiente paso es conectar una base de datos y autenticación (por ejemplo, Supabase) y desplegar el sitio. Las funciones actuales no hacen esa conexión todavía.
